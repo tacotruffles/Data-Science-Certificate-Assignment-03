@@ -317,27 +317,80 @@ flights %>%
 
 1.  Refer back to the lists of useful mutate and filtering functions. 
     Describe how each operation changes when you combine it with grouping.
+```{r}
 
-1.  Which plane (`tailnum`) has the worst on-time record?
+```
 
-1.  What time of day should you fly if you want to avoid delays as much
+2.  Which plane (`tailnum`) has the worst on-time record?
+```{r}
+flights %>%
+  group_by(tailnum) %>%
+  summarize(
+    arr_delay_avg = mean(arr_delay, na.rm = TRUE),
+  ) %>%
+  arrange(desc(min_rank(arr_delay_avg)))
+```
+
+3.  What time of day should you fly if you want to avoid delays as much
     as possible?
+```{r}
+(flights %>%
+  group_by(dep_time, dep_delay) %>%
+  filter(!is.na(dep_delay), !is.na(dep_time)) %>%
+  mutate (
+    n(),
+    prop_delays = (dep_delay / sum(dep_delay))
+  ) %>%
+  arrange(prop_delays) %>%
+  select(sched_dep_time, dep_time, dep_delay)
+)
+```
     
-1.  For each destination, compute the total minutes of delay. For each 
+4.  For each destination, compute the total minutes of delay. For each 
     flight, compute the proportion of the total delay for its destination.
+```{r}
+(flights %>%
+  group_by(dest) %>%
+  filter(!is.na(flight), !is.na(dest), !is.na(dep_delay)) %>%
+  mutate(
+    total_mins_delay = sum(dep_delay, na.rm = TRUE),
+    prop_total_delays = dep_delay / total_mins_delay
+  ) %>%
+  select(flight, prop_total_delays, everything())) %>%
+  arrange(desc(prop_total_delays))
+```
     
-1.  Delays are typically temporally correlated: even once the problem that
+5.  Delays are typically temporally correlated: even once the problem that
     caused the initial delay has been resolved, later flights are delayed 
     to allow earlier flights to leave. Using `lag()`, explore how the delay
     of a flight is related to the delay of the immediately preceding flight.
+```{r}
+
+```
     
-1.  Look at each destination. Can you find flights that are suspiciously
+6.  Look at each destination. Can you find flights that are suspiciously
     fast? (i.e. flights that represent a potential data entry error). Compute
     the air time a flight relative to the shortest flight to that destination.
     Which flights were most delayed in the air?
-    
-1.  Find all destinations that are flown by at least two carriers. Use that
-    information to rank the carriers.
+```{r}
 
-1.  For each plane, count the number of flights before the first delay 
+```
+    
+7.  Find all destinations that are flown by at least two carriers. Use that
+    information to rank the carriers.
+```{r}
+flights %>%
+  group_by(dest) %>%
+  filter(n_distinct(carrier) >= 2) %>%
+  group_by(carrier) %>%
+  #select(carrier, dest)
+  summarize(n = n_distinct(dest)) %>% 
+  arrange(min_rank(n))
+```
+
+8.  For each plane, count the number of flights before the first delay 
     of greater than 1 hour.
+```{r}
+
+```
+
